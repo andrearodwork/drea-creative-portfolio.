@@ -184,6 +184,32 @@ section{padding-block:110px 0}
 .slot b{font-weight:500;font-size:15px}
 .slot span{font-size:12px;color:var(--muted)}
 
+/* video library */
+.lib-tools{display:flex;flex-direction:column;gap:14px;margin-bottom:34px}
+.search{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:12px 20px;max-width:520px}
+.search svg{width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;flex:none}
+.search input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);outline:none}
+.search input::placeholder{color:var(--muted)}
+.search:focus-within{border-color:var(--ink)}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px}
+.tagbtn{font:inherit;font-size:13px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;transition:background .2s,color .2s}
+.tagbtn:hover{border-color:var(--ink)}
+.tagbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.libgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+@media (max-width:1000px){.libgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:700px){.libgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}}
+.vcard{display:flex;flex-direction:column;gap:10px;min-width:0;transition:transform .45s cubic-bezier(.2,.9,.25,1.3)}
+.vcard:hover{transform:scale(1.05);position:relative;z-index:2}
+.vframe{position:relative;aspect-ratio:9/16;border-radius:18px;overflow:hidden;background:var(--surface);box-shadow:0 18px 36px -22px rgba(43,34,32,.4)}
+.vframe iframe,.vframe video{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:cover}
+.vframe .face{text-decoration:none}
+.vmeta{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);min-width:0}
+.vmeta b{font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vmeta span{flex:none;font-variant-numeric:tabular-nums}
+.vtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:-4px}
+.vtags button{font:inherit;font-size:11.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.vtags button:hover{color:var(--ink);border-color:var(--ink)}
+.libempty{color:var(--muted);padding-block:30px}
 /* contact */
 .contact{margin-top:120px;background:var(--ink);color:var(--bg);border-radius:36px;padding-block:80px;text-align:center}
 .contact h2{font-size:clamp(44px,8vw,96px)}
@@ -216,7 +242,7 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
   <nav>
     <a class="logo" href="#top" id="top">andrea</a>
     <div class="navlinks">
-      <a href="#stats">stats</a><a href="#services">services</a>
+      <a href="#stats">stats</a><a href="#services">services</a><a href="#library">videos</a>
     </div>
     <a class="pill" href="#contact">work with me</a>
   </nav>
@@ -297,6 +323,19 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
     </div>
   </section>
 
+  <section id="library">
+    <div class="sec-head">
+      <div><div class="eyebrow">video library</div><h2>browse my <em>work</em></h2></div>
+      <p>search or tap a category to see videos i've made for brands and for my own pages.</p>
+    </div>
+    <div class="lib-tools">
+      <label class="search" for="lib-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="lib-q" type="search" placeholder="search hotels, kids products, beauty…" autocomplete="off"></label>
+      <div class="tagrow" id="lib-tags"></div>
+    </div>
+    <div class="libgrid" id="lib-grid"></div>
+    <p class="libempty" id="lib-empty" hidden>nothing matches that yet. try another category.</p>
+  </section>
+
   </div>
 
 <div class="wrap">
@@ -312,6 +351,69 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
   <footer><span class="serif" style="font-size:18px;color:var(--ink)">andrea</span><span>lifestyle · travel · motherhood</span></footer>
 </div>
 
+<script>
+(function(){
+  // Rows live in the "Drea Creative Video Library" Google Sheet. This copy is the fallback if the sheet can't be reached.
+  const SHEET_ID="1RAvhFZE4hqyTMhgJgB5r-fJ8aKZJzQRrf4R9KlXXORA";
+  const FALLBACK=[
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7693366371266202911","coffee with kids in medellín","","5K+","travel, restaurants, kids products, experiences"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692238591631641887","a day in our life","","18K+","day in the life, mom life"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692889859991653662","toddler moments at home","","1.8M+","mom life, kids products"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7696654146237205791","pov: you moved to colombia","","15K+","fashion, travel"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7690299866198641950","how to","","30K+","educational, product reviews"]
+  ];
+  const canEmbed=/(^|\.)dreacreative\.work$|github\.io$|^localhost$|^127\./.test(location.hostname);
+  const grid=document.getElementById("lib-grid"), tagsEl=document.getElementById("lib-tags"),
+        q=document.getElementById("lib-q"), empty=document.getElementById("lib-empty");
+  let videos=[], active="all";
+
+  function parseCSV(t){const rows=[];let r=[],f="",i=0,inq=false;
+    for(;i<t.length;i++){const c=t[i];
+      if(inq){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else inq=false}else f+=c}
+      else if(c=='"')inq=true; else if(c==','){r.push(f);f=""} else if(c=='\n'){r.push(f);rows.push(r);r=[];f=""} else if(c!='\r')f+=c}
+    if(f||r.length){r.push(f);rows.push(r)} return rows}
+  function fromRows(rows){return rows.map(r=>({show:(r[0]||"").trim().toLowerCase(),link:(r[1]||"").trim(),title:(r[2]||"").trim(),
+    brand:(r[3]||"").trim(),views:(r[4]||"").trim(),tags:(r[5]||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean)}))
+    .filter(v=>v.link && v.show!=="no")}
+  function embed(link){let m;
+    if(m=link.match(/tiktok\.com\/.*\/video\/(\d+)/)) return "https://www.tiktok.com/player/v1/"+m[1]+"?music_info=0&description=0&rel=0&loop=1";
+    if(m=link.match(/instagram\.com\/(reel|reels|p)\/([\w-]+)/)) return "https://www.instagram.com/"+(m[1]=="p"?"p":"reel")+"/"+m[2]+"/embed";
+    if(m=link.match(/(?:youtu\.be\/|youtube\.com\/(?:shorts\/|watch\?v=|embed\/))([\w-]{6,})/)) return "https://www.youtube.com/embed/"+m[1]+"?mute=1&playsinline=1&loop=1&playlist="+m[1];
+    if(m=link.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/)) return "https://drive.google.com/file/d/"+m[1]+"/preview";
+    return null}
+  const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  function card(v,i){
+    const d=document.createElement("div"); d.className="vcard";
+    const isFile=/\.(mp4|mov|webm)(\?|$)/i.test(v.link), src=embed(v.link);
+    let media;
+    if(isFile) media=`<video src="${esc(v.link)}" muted loop playsinline controls preload="metadata"></video>`;
+    else if(canEmbed && src) media=`<iframe src="${esc(src)}" loading="lazy" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen title="${esc(v.title||"video")}"></iframe>`;
+    else media=`<a class="face ${"abc"[i%3]}" href="${esc(v.link)}" target="_blank" rel="noopener"><span class="tag">${esc(v.tags[0]||"video")}</span><div class="play"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></div><span class="cap">watch ↗</span></a>`;
+    d.innerHTML=`<div class="vframe">${media}</div>
+      <div class="vmeta"><b>${esc(v.title||(v.brand?v.brand:"watch on tiktok"))}</b><span>${v.views?esc(v.views)+" views":""}</span></div>
+      <div class="vtags">${v.tags.map(t=>`<button type="button" data-tag="${esc(t)}">${esc(t)}</button>`).join("")}</div>`;
+    return d}
+  function render(){
+    const term=q.value.trim().toLowerCase();
+    const list=videos.filter(v=>(active==="all"||v.tags.includes(active)) &&
+      (!term || (v.title+" "+v.brand+" "+v.tags.join(" ")).toLowerCase().includes(term)));
+    grid.replaceChildren(...list.map(card)); empty.hidden=list.length>0;
+    tagsEl.querySelectorAll(".tagbtn").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tag===active)));
+  }
+  function buildTags(){
+    const counts={}; videos.forEach(v=>v.tags.forEach(t=>counts[t]=(counts[t]||0)+1));
+    const tags=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]||a.localeCompare(b));
+    tagsEl.innerHTML=["all",...tags].map(t=>`<button type="button" class="tagbtn" data-tag="${esc(t)}" aria-pressed="false">${esc(t)}</button>`).join("");
+  }
+  function setData(rows){videos=fromRows(rows); buildTags(); render()}
+  tagsEl.addEventListener("click",e=>{const b=e.target.closest("[data-tag]"); if(!b)return; active=b.dataset.tag; render()});
+  grid.addEventListener("click",e=>{const b=e.target.closest(".vtags [data-tag]"); if(!b)return; active=b.dataset.tag; q.value=""; render(); document.getElementById("library").scrollIntoView({behavior:"smooth"})});
+  q.addEventListener("input",()=>{if(q.value.trim())active="all"; render()});
+  setData(FALLBACK);
+  fetch("https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?tqx=out:csv&headers=1")
+    .then(r=>r.ok?r.text():Promise.reject()).then(t=>{const rows=parseCSV(t); if(rows.length>1) setData(rows.slice(1))}).catch(()=>{});
+})();
+</script>
 <div class="cursor" id="cursor" aria-hidden="true"></div>
 <script>
 (function(){
