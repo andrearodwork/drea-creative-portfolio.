@@ -191,7 +191,6 @@ section{padding-block:110px 0}
 .search input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);outline:none}
 .search input::placeholder{color:var(--muted)}
 .search:focus-within{border-color:var(--ink)}
-.tagrow{display:flex;flex-wrap:wrap;gap:8px}
 .tagbtn{font:inherit;font-size:13px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;transition:background .2s,color .2s}
 .tagbtn:hover{border-color:var(--ink)}
 .tagbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -210,6 +209,10 @@ section{padding-block:110px 0}
 .vtags button{font:inherit;font-size:11.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
 .vtags button:hover{color:var(--ink);border-color:var(--ink)}
 .libempty{color:var(--muted);padding-block:30px}
+.tagrow{display:flex;flex-direction:column;gap:10px}
+.fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.flabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);min-width:78px}
+.vbrand{font-size:12px;color:var(--muted);margin-top:-6px}
 /* contact */
 .contact{margin-top:120px;background:var(--ink);color:var(--bg);border-radius:36px;padding-block:80px;text-align:center}
 .contact h2{font-size:clamp(44px,8vw,96px)}
@@ -353,65 +356,95 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
 
 <script>
 (function(){
-  // Rows live in the "Drea Creative Video Library" Google Sheet. This copy is the fallback if the sheet can't be reached.
+  // Rows live in the "Videos" tab of the "Drea Creative Video Library" Google Sheet.
+  // FALLBACK is shown if the sheet can't be reached.
   const SHEET_ID="1RAvhFZE4hqyTMhgJgB5r-fJ8aKZJzQRrf4R9KlXXORA";
   const FALLBACK=[
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7693366371266202911","coffee with kids in medellín","","5K+","travel, restaurants, kids products, experiences"],
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692238591631641887","a day in our life","","18K+","day in the life, mom life"],
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692889859991653662","toddler moments at home","","1.8M+","mom life, kids products"],
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7696654146237205791","pov: you moved to colombia","","15K+","fashion, travel"],
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7690299866198641950","how to","","30K+","educational, product reviews"]
+    ["Show","Link","Title","Brand","Views","Niche","Niche 2","Format 1","Format 2","Format 3","Deliverable","Language"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7693366371266202911","coffee with kids in medellín","","5K+","food & restaurants","travel & stays","day in the life","","","organic post on my page","English"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692238591631641887","a day in our life","","18K+","motherhood & family","","day in the life","","","organic post on my page",""],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692889859991653662","toddler moments at home","","1.8M+","kids & toddler","motherhood & family","","","","organic post on my page",""],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7696654146237205791","pov: you moved to colombia","","15K+","fashion","travel & stays","try-on / outfit styling","","","organic post on my page","English"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7690299866198641950","how to","","30K+","beauty & self-care","","how-to / tutorial","","","organic post on my page",""]
+  ];
+  const GROUPS=[
+    {key:"niche",label:"niche",cols:["niche","niche 2"]},
+    {key:"format",label:"format",cols:["format 1","format 2","format 3"]},
+    {key:"deliverable",label:"made as",cols:["deliverable"]},
+    {key:"language",label:"language",cols:["language"]}
   ];
   const canEmbed=/(^|\.)dreacreative\.work$|github\.io$|^localhost$|^127\./.test(location.hostname);
   const grid=document.getElementById("lib-grid"), tagsEl=document.getElementById("lib-tags"),
         q=document.getElementById("lib-q"), empty=document.getElementById("lib-empty");
-  let videos=[], active="all";
+  let videos=[], active={};
 
   function parseCSV(t){const rows=[];let r=[],f="",i=0,inq=false;
     for(;i<t.length;i++){const c=t[i];
       if(inq){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else inq=false}else f+=c}
       else if(c=='"')inq=true; else if(c==','){r.push(f);f=""} else if(c=='\n'){r.push(f);rows.push(r);r=[];f=""} else if(c!='\r')f+=c}
     if(f||r.length){r.push(f);rows.push(r)} return rows}
-  function fromRows(rows){return rows.map(r=>({show:(r[0]||"").trim().toLowerCase(),link:(r[1]||"").trim(),title:(r[2]||"").trim(),
-    brand:(r[3]||"").trim(),views:(r[4]||"").trim(),tags:(r[5]||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean)}))
-    .filter(v=>v.link && v.show!=="no")}
+  function fromRows(rows){
+    const head=(rows[0]||[]).map(h=>h.trim().toLowerCase()), col=n=>head.indexOf(n);
+    const get=(r,n)=>{const i=col(n);return i<0?"":String(r[i]||"").trim()};
+    return rows.slice(1).map(r=>{
+      const v={show:get(r,"show").toLowerCase(),link:get(r,"link"),title:get(r,"title"),brand:get(r,"brand"),views:get(r,"views"),g:{}};
+      GROUPS.forEach(G=>{v.g[G.key]=[...new Set(G.cols.map(c=>get(r,c).toLowerCase()).filter(Boolean))]});
+      return v}).filter(v=>v.link && v.show!=="no")}
   function embed(link){let m;
     if(m=link.match(/tiktok\.com\/.*\/video\/(\d+)/)) return "https://www.tiktok.com/player/v1/"+m[1]+"?music_info=0&description=0&rel=0&loop=1";
     if(m=link.match(/instagram\.com\/(reel|reels|p)\/([\w-]+)/)) return "https://www.instagram.com/"+(m[1]=="p"?"p":"reel")+"/"+m[2]+"/embed";
     if(m=link.match(/(?:youtu\.be\/|youtube\.com\/(?:shorts\/|watch\?v=|embed\/))([\w-]{6,})/)) return "https://www.youtube.com/embed/"+m[1]+"?mute=1&playsinline=1&loop=1&playlist="+m[1];
     if(m=link.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/)) return "https://drive.google.com/file/d/"+m[1]+"/preview";
     return null}
-  const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   function card(v,i){
     const d=document.createElement("div"); d.className="vcard";
-    const isFile=/\.(mp4|mov|webm)(\?|$)/i.test(v.link), src=embed(v.link);
+    const isFile=/\.(mp4|mov|webm)(\?|$)/i.test(v.link), src=embed(v.link), first=v.g.niche[0]||v.g.format[0]||"video";
     let media;
     if(isFile) media=`<video src="${esc(v.link)}" muted loop playsinline controls preload="metadata"></video>`;
     else if(canEmbed && src) media=`<iframe src="${esc(src)}" loading="lazy" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen title="${esc(v.title||"video")}"></iframe>`;
-    else media=`<a class="face ${"abc"[i%3]}" href="${esc(v.link)}" target="_blank" rel="noopener"><span class="tag">${esc(v.tags[0]||"video")}</span><div class="play"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></div><span class="cap">watch ↗</span></a>`;
+    else media=`<a class="face ${"abc"[i%3]}" href="${esc(v.link)}" target="_blank" rel="noopener"><span class="tag">${esc(first)}</span><div class="play"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></div><span class="cap">watch ↗</span></a>`;
+    const chips=["niche","format"].flatMap(k=>v.g[k].map(t=>`<button type="button" data-group="${k}" data-tag="${esc(t)}">${esc(t)}</button>`)).join("");
     d.innerHTML=`<div class="vframe">${media}</div>
-      <div class="vmeta"><b>${esc(v.title||(v.brand?v.brand:"watch on tiktok"))}</b><span>${v.views?esc(v.views)+" views":""}</span></div>
-      <div class="vtags">${v.tags.map(t=>`<button type="button" data-tag="${esc(t)}">${esc(t)}</button>`).join("")}</div>`;
+      <div class="vmeta"><b>${esc(v.title||v.brand||"watch the video")}</b><span>${v.views?esc(v.views)+" views":""}</span></div>
+      ${v.brand&&v.title?`<div class="vbrand">for ${esc(v.brand)}</div>`:""}
+      <div class="vtags">${chips}</div>`;
     return d}
-  function render(){
+  function matches(v){
     const term=q.value.trim().toLowerCase();
-    const list=videos.filter(v=>(active==="all"||v.tags.includes(active)) &&
-      (!term || (v.title+" "+v.brand+" "+v.tags.join(" ")).toLowerCase().includes(term)));
+    const hay=[v.title,v.brand,...GROUPS.flatMap(G=>v.g[G.key])].join(" ").toLowerCase();
+    return GROUPS.every(G=>!active[G.key]||v.g[G.key].includes(active[G.key])) && (!term||hay.includes(term))}
+  function render(){
+    const list=videos.filter(matches);
     grid.replaceChildren(...list.map(card)); empty.hidden=list.length>0;
-    tagsEl.querySelectorAll(".tagbtn").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tag===active)));
+    tagsEl.querySelectorAll(".tagbtn").forEach(b=>{
+      const on=b.dataset.group==="all"?!Object.values(active).some(Boolean):active[b.dataset.group]===b.dataset.tag;
+      b.setAttribute("aria-pressed",String(on))});
   }
   function buildTags(){
-    const counts={}; videos.forEach(v=>v.tags.forEach(t=>counts[t]=(counts[t]||0)+1));
-    const tags=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]||a.localeCompare(b));
-    tagsEl.innerHTML=["all",...tags].map(t=>`<button type="button" class="tagbtn" data-tag="${esc(t)}" aria-pressed="false">${esc(t)}</button>`).join("");
+    // Only offer a filter when at least one visible video uses it.
+    let html=`<div class="fgroup"><button type="button" class="tagbtn" data-group="all" data-tag="all" aria-pressed="true">all videos</button></div>`;
+    GROUPS.forEach(G=>{
+      const counts={}; videos.forEach(v=>v.g[G.key].forEach(t=>counts[t]=(counts[t]||0)+1));
+      const opts=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]||a.localeCompare(b));
+      if(!opts.length) return;
+      html+=`<div class="fgroup"><span class="flabel">${G.label}</span>${opts.map(t=>`<button type="button" class="tagbtn" data-group="${G.key}" data-tag="${esc(t)}" aria-pressed="false">${esc(t)}</button>`).join("")}</div>`;
+    });
+    tagsEl.innerHTML=html;
+    Object.keys(active).forEach(k=>{if(active[k]&&!tagsEl.querySelector(`[data-group="${k}"][data-tag="${CSS.escape(active[k])}"]`))active[k]=null});
   }
   function setData(rows){videos=fromRows(rows); buildTags(); render()}
-  tagsEl.addEventListener("click",e=>{const b=e.target.closest("[data-tag]"); if(!b)return; active=b.dataset.tag; render()});
-  grid.addEventListener("click",e=>{const b=e.target.closest(".vtags [data-tag]"); if(!b)return; active=b.dataset.tag; q.value=""; render(); document.getElementById("library").scrollIntoView({behavior:"smooth"})});
-  q.addEventListener("input",()=>{if(q.value.trim())active="all"; render()});
+  function pick(group,tag){
+    if(group==="all"){active={};q.value=""}
+    else active[group]=active[group]===tag?null:tag;
+    render()}
+  tagsEl.addEventListener("click",e=>{const b=e.target.closest(".tagbtn"); if(b) pick(b.dataset.group,b.dataset.tag)});
+  grid.addEventListener("click",e=>{const b=e.target.closest(".vtags [data-tag]"); if(!b)return;
+    active={}; q.value=""; pick(b.dataset.group,b.dataset.tag); document.getElementById("library").scrollIntoView({behavior:"smooth"})});
+  q.addEventListener("input",render);
   setData(FALLBACK);
-  fetch("https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?tqx=out:csv&headers=1")
-    .then(r=>r.ok?r.text():Promise.reject()).then(t=>{const rows=parseCSV(t); if(rows.length>1) setData(rows.slice(1))}).catch(()=>{});
+  fetch("https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?tqx=out:csv&sheet=Videos&headers=1")
+    .then(r=>r.ok?r.text():Promise.reject()).then(t=>{const rows=parseCSV(t); if(rows.length>1 && rows[0].some(h=>/link/i.test(h))) setData(rows)}).catch(()=>{});
 })();
 </script>
 <div class="cursor" id="cursor" aria-hidden="true"></div>
