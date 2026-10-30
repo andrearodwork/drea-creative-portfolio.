@@ -194,8 +194,8 @@ section{padding-block:110px 0}
 .tagbtn{font:inherit;font-size:13px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;transition:background .2s,color .2s}
 .tagbtn:hover{border-color:var(--ink)}
 .tagbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.libgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
-@media (max-width:1000px){.libgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.libgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;max-width:900px}
+@media (max-width:1000px){.libgrid{gap:20px}}
 @media (max-width:700px){.libgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}}
 .vcard{display:flex;flex-direction:column;gap:10px;min-width:0;transition:transform .45s cubic-bezier(.2,.9,.25,1.3)}
 .vcard:hover{transform:scale(1.05);position:relative;z-index:2}
@@ -219,6 +219,24 @@ section{padding-block:110px 0}
 .play{transition:transform .25s}
 .vopen{font-size:12px;color:var(--muted);text-decoration:none;margin-top:-6px}
 .vopen:hover{color:var(--ink);text-decoration:underline}
+.filters{display:flex;flex-wrap:wrap;gap:10px}
+.fsel{position:relative;display:flex;flex-direction:column;gap:4px;min-width:0}
+.fsel span{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-left:14px}
+.fsel select{appearance:none;-webkit-appearance:none;font:inherit;font-size:14px;color:var(--ink);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237d716d' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 14px center;border:1px solid var(--line);border-radius:999px;padding:10px 36px 10px 16px;max-width:240px;cursor:pointer}
+.fsel select:hover,.fsel select:focus{border-color:var(--ink);outline:none}
+.fsel select.on{background-color:var(--ink);color:var(--bg);border-color:var(--ink)}
+.libcount{margin:0;font-size:13px;color:var(--muted)}
+.libcount button{font:inherit;color:var(--ink);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.vmodal{position:fixed;inset:0;z-index:1000;background:rgba(28,23,22,.78);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));animation:fadein .2s ease}
+.vmodal-box{position:relative;display:flex;flex-direction:column;gap:12px;align-items:center}
+.vmodal-frame{width:min(92vw,calc(min(82vh,780px) * 9 / 16));aspect-ratio:9/16;border-radius:18px;overflow:hidden;background:#000;position:relative}
+.vmodal-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vmodal-cap{color:#f3ebe7;font-size:14px;text-align:center;max-width:min(92vw,440px)}
+.vmodal-cap em{font-size:1.25em}
+.vclose{position:absolute;top:-6px;right:-6px;transform:translate(50%,-50%);width:40px;height:40px;border-radius:50%;border:0;background:#fbf9f8;color:#2b2220;font-size:24px;line-height:1;cursor:pointer;z-index:2}
+@media (max-width:520px){.vclose{transform:none;top:8px;right:8px}}
+.vmodal[hidden]{display:none}
+@keyframes fadein{from{opacity:0}}
 /* contact */
 .contact{margin-top:120px;background:var(--ink);color:var(--bg);border-radius:36px;padding-block:80px;text-align:center}
 .contact h2{font-size:clamp(44px,8vw,96px)}
@@ -335,15 +353,23 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
   <section id="library">
     <div class="sec-head">
       <div><div class="eyebrow">video library</div><h2>browse my <em>work</em></h2></div>
-      <p>search or tap a category to see videos i've made for brands and for my own pages.</p>
+      <p>my top videos by reach. search or filter to find work in your niche.</p>
     </div>
     <div class="lib-tools">
       <label class="search" for="lib-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="lib-q" type="search" placeholder="search hotels, kids products, beauty…" autocomplete="off"></label>
-      <div class="tagrow" id="lib-tags"></div>
+      <div class="filters" id="lib-filters"></div>
+      <p class="libcount" id="lib-count" aria-live="polite"></p>
     </div>
     <div class="libgrid" id="lib-grid"></div>
-    <p class="libempty" id="lib-empty" hidden>nothing matches that yet. try another category.</p>
+    <p class="libempty" id="lib-empty" hidden>nothing matches that yet. try another filter.</p>
   </section>
+  <div class="vmodal" id="vmodal" hidden role="dialog" aria-modal="true" aria-label="video player">
+    <div class="vmodal-box">
+      <button type="button" class="vclose" id="vclose" aria-label="Close video">×</button>
+      <div class="vmodal-frame" id="vmodal-frame"></div>
+      <div class="vmodal-cap" id="vmodal-cap"></div>
+    </div>
+  </div>
 
   </div>
 
@@ -363,27 +389,32 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
 <script>
 (function(){
   // Rows live in the "Videos" tab of the "Drea Creative Video Library" Google Sheet.
-  // FALLBACK is shown if the sheet can't be reached.
+  // FALLBACK is shown only if the sheet can't be reached.
   const SHEET_ID="1RAvhFZE4hqyTMhgJgB5r-fJ8aKZJzQRrf4R9KlXXORA";
+  const TOP_N=6;
   const FALLBACK=[
     ["Show","Link","Title","Brand","Views","Niche","Niche 2","Format 1","Format 2","Format 3","Deliverable","Language"],
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7693366371266202911","coffee with kids in medellín","","5K+","food & restaurants","travel & stays","day in the life","","","organic post on my page","English"],
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692238591631641887","a day in our life","","18K+","motherhood & family","","day in the life","","","organic post on my page",""],
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692889859991653662","toddler moments at home","","1.8M+","kids & toddler","motherhood & family","","","","organic post on my page",""],
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7696654146237205791","pov: you moved to colombia","","15K+","fashion","travel & stays","try-on / outfit styling","","","organic post on my page","English"],
-    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7690299866198641950","how to","","30K+","beauty & self-care","","how-to / tutorial","","","organic post on my page",""]
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7386064647767526686","viral beach chairs at aldi","Aldi","2M+","home","","in-store promo","voiceover / script read","","organic post on my page","English"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692889859991653662","tips for toddler moms","Tenkaiwick","1.8M+","kids & toddler","motherhood & family","product demo","problem / solution","","organic post on my page","English"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7538190759850282270","viral beach chairs at aldi","Aldi","180K+","home","","voiceover / script read","reaction","in-store promo","organic post on my page","English"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7690299866198641950","how i afford to live 1/2 the year in colombia","","30K+","travel & stays","","how-to / tutorial","talking head","","organic post on my page","English"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7643963770062114079","colombian swimwear brand at nordstrom rack","Maagii","25K+","fashion","","reaction","in-store promo","product spotlight","organic post on my page","English"],
+    ["yes","https://www.tiktok.com/@itsdreaestefania/video/7692238591631641887","a day in our life living in colombia","","18K+","motherhood & family","","day in the life","vlog","","organic post on my page","English"]
   ];
   const GROUPS=[
-    {key:"niche",label:"niche",cols:["niche","niche 2"]},
-    {key:"format",label:"format",cols:["format 1","format 2","format 3"]},
-    {key:"deliverable",label:"made as",cols:["deliverable"]},
-    {key:"language",label:"language",cols:["language"]}
+    {key:"niche",label:"niche",all:"all niches",cols:["niche","niche 2"]},
+    {key:"format",label:"format",all:"all formats",cols:["format 1","format 2","format 3"]},
+    {key:"deliverable",label:"made as",all:"any type",cols:["deliverable"]},
+    {key:"language",label:"language",all:"any language",cols:["language"]}
   ];
   const canEmbed=/(^|\.)dreacreative\.work$|github\.io$|^localhost$|^127\./.test(location.hostname);
-  const grid=document.getElementById("lib-grid"), tagsEl=document.getElementById("lib-tags"),
-        q=document.getElementById("lib-q"), empty=document.getElementById("lib-empty");
-  let videos=[], active={}, playing=null;
+  const $=id=>document.getElementById(id);
+  const grid=$("lib-grid"), filtersEl=$("lib-filters"), q=$("lib-q"), empty=$("lib-empty"), countEl=$("lib-count");
+  const modal=$("vmodal"), mframe=$("vmodal-frame"), mcap=$("vmodal-cap");
+  let videos=[], active={}, view="top";
 
+  const reach=s=>{const m=String(s).replace(/,/g,"").match(/([\d.]+)\s*([kmb])?/i); if(!m) return 0;
+    return parseFloat(m[1])*({k:1e3,m:1e6,b:1e9}[(m[2]||"").toLowerCase()]||1)};
   function parseCSV(t){const rows=[];let r=[],f="",i=0,inq=false;
     for(;i<t.length;i++){const c=t[i];
       if(inq){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else inq=false}else f+=c}
@@ -394,32 +425,30 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
     const get=(r,n)=>{const i=col(n);return i<0?"":String(r[i]||"").trim()};
     return rows.slice(1).map(r=>{
       const v={show:get(r,"show").toLowerCase(),link:get(r,"link"),title:get(r,"title"),brand:get(r,"brand"),views:get(r,"views"),g:{}};
+      v.reach=reach(v.views);
       GROUPS.forEach(G=>{v.g[G.key]=[...new Set(G.cols.map(c=>get(r,c).toLowerCase()).filter(Boolean))]});
-      return v}).filter(v=>v.link && v.show!=="no")}
+      return v}).filter(v=>v.link && v.show!=="no").sort((a,b)=>b.reach-a.reach)}
   function embed(link){let m;
-    if(m=link.match(/tiktok\.com\/.*\/(?:video|photo)\/(\d+)/)) return "https://www.tiktok.com/player/v1/"+m[1]+"?autoplay=1&music_info=0&description=0&rel=0&loop=1";
+    if(m=link.match(/tiktok\.com\/.*\/(?:video|photo)\/(\d+)/)) return "https://www.tiktok.com/player/v1/"+m[1]+"?music_info=0&description=0&rel=0&loop=1&native_context_menu=0";
     if(m=link.match(/instagram\.com\/(reel|reels|p)\/([\w-]+)/)) return "https://www.instagram.com/"+(m[1]=="p"?"p":"reel")+"/"+m[2]+"/embed";
     if(m=link.match(/(?:youtu\.be\/|youtube\.com\/(?:shorts\/|watch\?v=|embed\/))([\w-]{6,})/)) return "https://www.youtube.com/embed/"+m[1]+"?autoplay=1&playsinline=1&loop=1&playlist="+m[1];
     if(m=link.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/)) return "https://drive.google.com/file/d/"+m[1]+"/preview";
     return null}
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const filtering=()=>q.value.trim()!==""||GROUPS.some(G=>active[G.key]);
+
   function card(v,i){
     const d=document.createElement("div"); d.className="vcard";
-    const isFile=/\.(mp4|mov|webm)(\?|$)/i.test(v.link), src=embed(v.link), first=v.g.niche[0]||v.g.format[0]||"video";
-    let media;
-    if(isFile) media=`<video src="${esc(v.link)}" muted loop playsinline controls preload="metadata"></video>`;
-    else {
-      // Poster first. The player only loads when someone taps it, so TikTok never sees a burst of requests.
-      const tapToPlay=canEmbed && src;
-      const inner=`<span class="tag">${esc(first)}</span><div class="play"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></div><span class="cap">${esc(v.title||"watch")}</span>`;
-      media=tapToPlay
-        ? `<button type="button" class="face poster ${"abc"[i%3]}" data-src="${esc(src)}" aria-label="Play ${esc(v.title||"video")}">${inner}</button>`
-        : `<a class="face ${"abc"[i%3]}" href="${esc(v.link)}" target="_blank" rel="noopener">${inner}</a>`;
-    }
+    const first=v.g.niche[0]||v.g.format[0]||"video";
+    const inner=`<span class="tag">${esc(first)}</span><div class="play"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></div><span class="cap">${esc(v.title||"watch")}</span>`;
+    const isFile=/\.(mp4|mov|webm)(\?|$)/i.test(v.link);
+    const playable=isFile||(canEmbed&&embed(v.link));
+    const media=playable
+      ? `<button type="button" class="face poster ${"abc"[i%3]}" data-i="${videos.indexOf(v)}" aria-label="Play ${esc(v.title||"video")}">${inner}</button>`
+      : `<a class="face ${"abc"[i%3]}" href="${esc(v.link)}" target="_blank" rel="noopener">${inner}</a>`;
     const chips=["niche","format"].flatMap(k=>v.g[k].map(t=>`<button type="button" data-group="${k}" data-tag="${esc(t)}">${esc(t)}</button>`)).join("");
     d.innerHTML=`<div class="vframe">${media}</div>
-      <div class="vmeta"><b>${esc(v.brand||v.title||"watch the video")}</b><span>${v.views?esc(v.views)+" views":""}</span></div>
-      <a class="vopen" href="${esc(v.link)}" target="_blank" rel="noopener">open on ${/instagram/.test(v.link)?"instagram":/youtu/.test(v.link)?"youtube":/drive\.google/.test(v.link)?"google drive":"tiktok"} ↗</a>
+      <div class="vmeta"><b>${esc(v.brand||v.title||"")}</b><span>${v.views?esc(v.views)+" views":""}</span></div>
       <div class="vtags">${chips}</div>`;
     return d}
   function matches(v){
@@ -427,41 +456,67 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
     const hay=[v.title,v.brand,...GROUPS.flatMap(G=>v.g[G.key])].join(" ").toLowerCase();
     return GROUPS.every(G=>!active[G.key]||v.g[G.key].includes(active[G.key])) && (!term||hay.includes(term))}
   function render(){
-    playing=null;
-    const list=videos.filter(matches);
+    closeVideo();
+    let list;
+    if(filtering()){ list=videos.filter(matches); view="filtered" }
+    else list=view==="all"?videos:videos.slice(0,TOP_N);
     grid.replaceChildren(...list.map(card)); empty.hidden=list.length>0;
-    tagsEl.querySelectorAll(".tagbtn").forEach(b=>{
-      const on=b.dataset.group==="all"?!Object.values(active).some(Boolean):active[b.dataset.group]===b.dataset.tag;
-      b.setAttribute("aria-pressed",String(on))});
+    const viewSel=$("f-view"); if(viewSel) viewSel.value=filtering()?"filtered":view;
+    GROUPS.forEach(G=>{const el=$("f-"+G.key); if(el){el.value=active[G.key]||""; el.classList.toggle("on",!!active[G.key])}});
+    if(filtering()) countEl.innerHTML=`${list.length} video${list.length===1?"":"s"}, highest reach first · <button type="button" id="lib-reset">clear filters</button>`;
+    else if(view==="all") countEl.textContent=`all ${list.length} videos, highest reach first`;
+    else countEl.innerHTML=`my top ${list.length} videos by reach · <button type="button" id="lib-all">see all ${videos.length}</button>`;
   }
-  function buildTags(){
-    // Only offer a filter when at least one visible video uses it.
-    let html=`<div class="fgroup"><button type="button" class="tagbtn" data-group="all" data-tag="all" aria-pressed="true">all videos</button></div>`;
+  function buildFilters(){
+    // A filter option only appears when at least one visible video uses it.
+    let html=`<label class="fsel"><span>show</span><select id="f-view"><option value="top">top impressions</option><option value="all">all videos</option><option value="filtered" hidden>filtered results</option></select></label>`;
     GROUPS.forEach(G=>{
       const counts={}; videos.forEach(v=>v.g[G.key].forEach(t=>counts[t]=(counts[t]||0)+1));
-      const opts=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]||a.localeCompare(b));
-      if(!opts.length) return;
-      html+=`<div class="fgroup"><span class="flabel">${G.label}</span>${opts.map(t=>`<button type="button" class="tagbtn" data-group="${G.key}" data-tag="${esc(t)}" aria-pressed="false">${esc(t)}</button>`).join("")}</div>`;
+      const opts=Object.keys(counts).sort((a,b)=>a.localeCompare(b));
+      if(!opts.length){active[G.key]=null;return}
+      if(active[G.key]&&!counts[active[G.key]]) active[G.key]=null;
+      html+=`<label class="fsel"><span>${G.label}</span><select id="f-${G.key}" data-group="${G.key}"><option value="">${G.all}</option>${opts.map(t=>`<option value="${esc(t)}">${esc(t)} (${counts[t]})</option>`).join("")}</select></label>`;
     });
-    tagsEl.innerHTML=html;
-    Object.keys(active).forEach(k=>{if(active[k]&&!tagsEl.querySelector(`[data-group="${k}"][data-tag="${CSS.escape(active[k])}"]`))active[k]=null});
+    filtersEl.innerHTML=html;
   }
-  function setData(rows){videos=fromRows(rows); buildTags(); render()}
-  function pick(group,tag){
-    if(group==="all"){active={};q.value=""}
-    else active[group]=active[group]===tag?null:tag;
-    render()}
-  tagsEl.addEventListener("click",e=>{const b=e.target.closest(".tagbtn"); if(b) pick(b.dataset.group,b.dataset.tag)});
-  function stopPlaying(){ if(playing){ playing.frame.replaceChildren(playing.poster); playing=null } }
-  grid.addEventListener("click",e=>{
-    const p=e.target.closest(".poster"); if(!p) return;
-    stopPlaying();
-    const frame=p.parentElement, f=document.createElement("iframe");
-    f.src=p.dataset.src; f.allow="autoplay; encrypted-media; fullscreen; picture-in-picture"; f.allowFullscreen=true; f.title=p.getAttribute("aria-label");
-    playing={frame,poster:p}; frame.replaceChildren(f);
+  function reset(toView){active={}; q.value=""; view=toView||"top"; render()}
+  function setData(rows){videos=fromRows(rows); buildFilters(); render()}
+
+  // video pop-up
+  let lastFocus=null;
+  function openVideo(v){
+    lastFocus=document.activeElement;
+    const isFile=/\.(mp4|mov|webm)(\?|$)/i.test(v.link);
+    mframe.innerHTML=isFile
+      ? `<video src="${esc(v.link)}" controls autoplay playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain"></video>`
+      : `<iframe src="${esc(embed(v.link))}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen title="${esc(v.title||"video")}"></iframe>`;
+    mcap.innerHTML=`<em>${esc(v.title||"")}</em>${v.brand?` · ${esc(v.brand)}`:""}${v.views?` · ${esc(v.views)} views`:""}`;
+    modal.hidden=false; document.documentElement.style.overflow="hidden"; $("vclose").focus();
+  }
+  function closeVideo(){
+    if(modal.hidden) return;
+    modal.hidden=true; mframe.replaceChildren(); document.documentElement.style.overflow="";
+    if(lastFocus) lastFocus.focus({preventScroll:true});
+  }
+  $("vclose").addEventListener("click",closeVideo);
+  modal.addEventListener("click",e=>{if(e.target===modal) closeVideo()});
+  addEventListener("keydown",e=>{if(e.key==="Escape") closeVideo()});
+
+  filtersEl.addEventListener("change",e=>{
+    const el=e.target;
+    if(el.id==="f-view"){ reset(el.value==="all"?"all":"top"); return }
+    active[el.dataset.group]=el.value||null; render();
   });
-  grid.addEventListener("click",e=>{const b=e.target.closest(".vtags [data-tag]"); if(!b)return;
-    active={}; q.value=""; pick(b.dataset.group,b.dataset.tag); document.getElementById("library").scrollIntoView({behavior:"smooth"})});
+  countEl.addEventListener("click",e=>{
+    if(e.target.id==="lib-reset") reset("top");
+    if(e.target.id==="lib-all") reset("all");
+  });
+  grid.addEventListener("click",e=>{
+    const p=e.target.closest(".poster"); if(p){ openVideo(videos[+p.dataset.i]); return }
+    const b=e.target.closest(".vtags [data-tag]"); if(!b) return;
+    active={}; q.value=""; active[b.dataset.group]=b.dataset.tag; render();
+    $("library").scrollIntoView({behavior:"smooth"});
+  });
   q.addEventListener("input",render);
   setData(FALLBACK);
   fetch("https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?tqx=out:csv&sheet=Videos&headers=1")
