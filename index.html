@@ -237,6 +237,10 @@ section{padding-block:110px 0}
 @media (max-width:520px){.vclose{transform:none;top:8px;right:8px}}
 .vmodal[hidden]{display:none}
 @keyframes fadein{from{opacity:0}}
+.vnoembed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:28px;text-align:center;background:#2b2220;color:#f3ebe7}
+.vnoembed .eyebrow{color:#a8998f}
+.vnoembed p{margin:0;max-width:26ch}
+.vnoembed .pill{background:#fbf9f8;color:#2b2220}
 /* contact */
 .contact{margin-top:120px;background:var(--ink);color:var(--bg);border-radius:36px;padding-block:80px;text-align:center}
 .contact h2{font-size:clamp(44px,8vw,96px)}
@@ -487,7 +491,10 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
   function openVideo(v){
     lastFocus=document.activeElement;
     const isFile=/\.(mp4|mov|webm)(\?|$)/i.test(v.link);
-    mframe.innerHTML=isFile
+    const isPhoto=/tiktok\.com\/.*\/photo\//.test(v.link);
+    mframe.innerHTML=isPhoto
+      ? `<div class="vnoembed"><span class="eyebrow">photo carousel</span><p>TikTok doesn't let photo carousels play outside the app.</p><a class="pill" href="${esc(v.link)}" target="_blank" rel="noopener">view it on tiktok ↗</a></div>`
+      : isFile
       ? `<video src="${esc(v.link)}" controls autoplay playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain"></video>`
       : `<iframe src="${esc(embed(v.link))}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen title="${esc(v.title||"video")}"></iframe>`;
     mcap.innerHTML=`<em>${esc(v.title||"")}</em>${v.brand?` · ${esc(v.brand)}`:""}${v.views?` · ${esc(v.views)} views`:""}`;
