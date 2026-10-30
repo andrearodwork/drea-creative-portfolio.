@@ -213,6 +213,12 @@ section{padding-block:110px 0}
 .fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .flabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);min-width:78px}
 .vbrand{font-size:12px;color:var(--muted);margin-top:-6px}
+.poster{border:0;width:100%;cursor:pointer;font:inherit;text-align:left}
+.poster .cap{font-size:22px;line-height:1.05}
+.poster:hover .play{transform:scale(1.1)}
+.play{transition:transform .25s}
+.vopen{font-size:12px;color:var(--muted);text-decoration:none;margin-top:-6px}
+.vopen:hover{color:var(--ink);text-decoration:underline}
 /* contact */
 .contact{margin-top:120px;background:var(--ink);color:var(--bg);border-radius:36px;padding-block:80px;text-align:center}
 .contact h2{font-size:clamp(44px,8vw,96px)}
@@ -376,7 +382,7 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
   const canEmbed=/(^|\.)dreacreative\.work$|github\.io$|^localhost$|^127\./.test(location.hostname);
   const grid=document.getElementById("lib-grid"), tagsEl=document.getElementById("lib-tags"),
         q=document.getElementById("lib-q"), empty=document.getElementById("lib-empty");
-  let videos=[], active={};
+  let videos=[], active={}, playing=null;
 
   function parseCSV(t){const rows=[];let r=[],f="",i=0,inq=false;
     for(;i<t.length;i++){const c=t[i];
@@ -391,9 +397,9 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
       GROUPS.forEach(G=>{v.g[G.key]=[...new Set(G.cols.map(c=>get(r,c).toLowerCase()).filter(Boolean))]});
       return v}).filter(v=>v.link && v.show!=="no")}
   function embed(link){let m;
-    if(m=link.match(/tiktok\.com\/.*\/video\/(\d+)/)) return "https://www.tiktok.com/player/v1/"+m[1]+"?music_info=0&description=0&rel=0&loop=1";
+    if(m=link.match(/tiktok\.com\/.*\/(?:video|photo)\/(\d+)/)) return "https://www.tiktok.com/player/v1/"+m[1]+"?autoplay=1&music_info=0&description=0&rel=0&loop=1";
     if(m=link.match(/instagram\.com\/(reel|reels|p)\/([\w-]+)/)) return "https://www.instagram.com/"+(m[1]=="p"?"p":"reel")+"/"+m[2]+"/embed";
-    if(m=link.match(/(?:youtu\.be\/|youtube\.com\/(?:shorts\/|watch\?v=|embed\/))([\w-]{6,})/)) return "https://www.youtube.com/embed/"+m[1]+"?mute=1&playsinline=1&loop=1&playlist="+m[1];
+    if(m=link.match(/(?:youtu\.be\/|youtube\.com\/(?:shorts\/|watch\?v=|embed\/))([\w-]{6,})/)) return "https://www.youtube.com/embed/"+m[1]+"?autoplay=1&playsinline=1&loop=1&playlist="+m[1];
     if(m=link.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/)) return "https://drive.google.com/file/d/"+m[1]+"/preview";
     return null}
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -402,12 +408,18 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
     const isFile=/\.(mp4|mov|webm)(\?|$)/i.test(v.link), src=embed(v.link), first=v.g.niche[0]||v.g.format[0]||"video";
     let media;
     if(isFile) media=`<video src="${esc(v.link)}" muted loop playsinline controls preload="metadata"></video>`;
-    else if(canEmbed && src) media=`<iframe src="${esc(src)}" loading="lazy" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen title="${esc(v.title||"video")}"></iframe>`;
-    else media=`<a class="face ${"abc"[i%3]}" href="${esc(v.link)}" target="_blank" rel="noopener"><span class="tag">${esc(first)}</span><div class="play"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></div><span class="cap">watch ↗</span></a>`;
+    else {
+      // Poster first. The player only loads when someone taps it, so TikTok never sees a burst of requests.
+      const tapToPlay=canEmbed && src;
+      const inner=`<span class="tag">${esc(first)}</span><div class="play"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></div><span class="cap">${esc(v.title||"watch")}</span>`;
+      media=tapToPlay
+        ? `<button type="button" class="face poster ${"abc"[i%3]}" data-src="${esc(src)}" aria-label="Play ${esc(v.title||"video")}">${inner}</button>`
+        : `<a class="face ${"abc"[i%3]}" href="${esc(v.link)}" target="_blank" rel="noopener">${inner}</a>`;
+    }
     const chips=["niche","format"].flatMap(k=>v.g[k].map(t=>`<button type="button" data-group="${k}" data-tag="${esc(t)}">${esc(t)}</button>`)).join("");
     d.innerHTML=`<div class="vframe">${media}</div>
-      <div class="vmeta"><b>${esc(v.title||v.brand||"watch the video")}</b><span>${v.views?esc(v.views)+" views":""}</span></div>
-      ${v.brand&&v.title?`<div class="vbrand">for ${esc(v.brand)}</div>`:""}
+      <div class="vmeta"><b>${esc(v.brand||v.title||"watch the video")}</b><span>${v.views?esc(v.views)+" views":""}</span></div>
+      <a class="vopen" href="${esc(v.link)}" target="_blank" rel="noopener">open on ${/instagram/.test(v.link)?"instagram":/youtu/.test(v.link)?"youtube":/drive\.google/.test(v.link)?"google drive":"tiktok"} ↗</a>
       <div class="vtags">${chips}</div>`;
     return d}
   function matches(v){
@@ -415,6 +427,7 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
     const hay=[v.title,v.brand,...GROUPS.flatMap(G=>v.g[G.key])].join(" ").toLowerCase();
     return GROUPS.every(G=>!active[G.key]||v.g[G.key].includes(active[G.key])) && (!term||hay.includes(term))}
   function render(){
+    playing=null;
     const list=videos.filter(matches);
     grid.replaceChildren(...list.map(card)); empty.hidden=list.length>0;
     tagsEl.querySelectorAll(".tagbtn").forEach(b=>{
@@ -439,6 +452,14 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
     else active[group]=active[group]===tag?null:tag;
     render()}
   tagsEl.addEventListener("click",e=>{const b=e.target.closest(".tagbtn"); if(b) pick(b.dataset.group,b.dataset.tag)});
+  function stopPlaying(){ if(playing){ playing.frame.replaceChildren(playing.poster); playing=null } }
+  grid.addEventListener("click",e=>{
+    const p=e.target.closest(".poster"); if(!p) return;
+    stopPlaying();
+    const frame=p.parentElement, f=document.createElement("iframe");
+    f.src=p.dataset.src; f.allow="autoplay; encrypted-media; fullscreen; picture-in-picture"; f.allowFullscreen=true; f.title=p.getAttribute("aria-label");
+    playing={frame,poster:p}; frame.replaceChildren(f);
+  });
   grid.addEventListener("click",e=>{const b=e.target.closest(".vtags [data-tag]"); if(!b)return;
     active={}; q.value=""; pick(b.dataset.group,b.dataset.tag); document.getElementById("library").scrollIntoView({behavior:"smooth"})});
   q.addEventListener("input",render);
