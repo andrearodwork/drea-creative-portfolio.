@@ -280,6 +280,8 @@ footer .fsoc a:hover{color:var(--ink)}
 :root[data-theme="dark"] .themebtn .i-moon{display:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .themebtn .i-sun{display:block}:root:not([data-theme="light"]) .themebtn .i-moon{display:none}}
 .navdiv{width:1px;height:18px;background:var(--line)}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+#library,#stats,#services,#contact{scroll-margin-top:24px}
 /* contact */
 .contact{margin-top:120px;background:var(--choc);color:var(--on-choc);border-radius:36px;padding-block:80px;text-align:center}
 .contact h2{font-size:clamp(44px,8vw,96px)}
@@ -333,8 +335,8 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
       <h1><span class="greet" aria-hidden="true"><span class="greet-word" id="greet">hi, i’m</span></span><span class="sr">hi, i'm</span> <em>andrea</em></h1>
       <p class="lede"><em>lifestyle, travel</em> and <em>mommy</em> creator.</p>
       <div class="ctas">
-        <a class="pill" href="#stats">see my numbers</a>
-        <a class="pill ghost" href="https://www.tiktok.com/@itsdreaestefania" target="_blank" rel="noopener">@itsdreaestefania</a>
+        <a class="pill" href="#library">see my work</a>
+        <a class="pill ghost" href="#stats">see my numbers</a>
       </div>
     </div>
   </header>
