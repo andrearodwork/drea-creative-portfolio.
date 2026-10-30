@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Andrea Estefania: lifestyle, travel and mommy creator for UGC, personal posts and Amazon reviews.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#2b2220">
+<script>try{var t=localStorage.getItem("drea-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -24,6 +29,7 @@
   --blush:#efd3cc;
   --accent:#5a7d99;
   --card-a:#d9cfc9; --card-b:#c6d6e3; --card-c:#ecdcd3;
+  --choc:#2b2220; --on-choc:#fbf9f8;
   --serif:"Instrument Serif","Cormorant Garamond",Georgia,serif;
   --sans:"Hanken Grotesk","Helvetica Neue",Arial,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
@@ -31,11 +37,11 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#1c1716;--surface:#262020;--ink:#f3ebe7;--muted:#a8998f;--line:#3a3230;
   --blue:#3b5163;--blush:#5a3f39;--accent:#9fc0da;
-  --card-a:#3d3431;--card-b:#2f3e4a;--card-c:#463733;color-scheme:dark}}
+  --card-a:#3d3431;--card-b:#2f3e4a;--card-c:#463733;--choc:#4a3329;--on-choc:#f6ece6;color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#1c1716;--surface:#262020;--ink:#f3ebe7;--muted:#a8998f;--line:#3a3230;
   --blue:#3b5163;--blush:#5a3f39;--accent:#9fc0da;
-  --card-a:#3d3431;--card-b:#2f3e4a;--card-c:#463733;color-scheme:dark}
+  --card-a:#3d3431;--card-b:#2f3e4a;--card-c:#463733;--choc:#4a3329;--on-choc:#f6ece6;color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;font-weight:400;overflow-x:hidden;-webkit-font-smoothing:antialiased}
@@ -258,19 +264,28 @@ section{padding-block:110px 0}
 .social{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:1px solid currentColor;text-decoration:none;font-size:14px;opacity:.9}
 .social:hover{opacity:1}
 .social svg{width:16px;height:16px;fill:currentColor}
-.navsocial{display:flex;gap:14px;align-items:center}
+.navsocial{display:flex;gap:14px;align-items:center;margin-right:18px}
+nav .navlinks{margin-inline:auto}
 .navsocial a{color:var(--muted);display:inline-flex}
 .navsocial a:hover{color:var(--ink)}
 .navsocial svg{width:18px;height:18px;fill:currentColor}
 footer .fsoc{display:flex;gap:16px}
 footer .fsoc a{color:var(--muted);text-decoration:none}
 footer .fsoc a:hover{color:var(--ink)}
+.themebtn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;padding:0}
+.themebtn:hover{border-color:var(--ink)}
+.themebtn svg{width:16px;height:16px;fill:currentColor}
+.themebtn .i-sun{display:none}
+:root[data-theme="dark"] .themebtn .i-sun{display:block}
+:root[data-theme="dark"] .themebtn .i-moon{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .themebtn .i-sun{display:block}:root:not([data-theme="light"]) .themebtn .i-moon{display:none}}
+.navdiv{width:1px;height:18px;background:var(--line)}
 /* contact */
-.contact{margin-top:120px;background:var(--ink);color:var(--bg);border-radius:36px;padding-block:80px;text-align:center}
+.contact{margin-top:120px;background:var(--choc);color:var(--on-choc);border-radius:36px;padding-block:80px;text-align:center}
 .contact h2{font-size:clamp(44px,8vw,96px)}
-.contact p{color:color-mix(in srgb,var(--bg) 70%,transparent);max-width:440px;margin:18px auto 30px}
-.contact .pill{background:var(--bg);color:var(--ink)}
-.email-label{font-size:14px;color:color-mix(in srgb,var(--bg) 65%,transparent);margin-bottom:10px}
+.contact p{color:color-mix(in srgb,var(--on-choc) 72%,transparent);max-width:440px;margin:18px auto 30px}
+.contact .pill{background:var(--on-choc);color:var(--choc)}
+.email-label{font-size:14px;color:color-mix(in srgb,var(--on-choc) 65%,transparent);margin-bottom:10px}
 .email-row{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap}
 .email{font-family:var(--serif);font-style:italic;font-size:clamp(26px,4.5vw,44px);text-decoration:none;user-select:all;overflow-wrap:anywhere}
 .email:hover{text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
@@ -299,7 +314,7 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
     <div class="navlinks">
       <a href="#stats">stats</a><a href="#services">services</a><a href="#library">videos</a>
     </div>
-    <div class="navsocial"><a href="https://www.tiktok.com/@itsdreaestefania" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5 2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 3.37-2.48V9.66a5.7 5.7 0 0 0-.77-.05A5.69 5.69 0 0 0 4.17 15.3 5.69 5.69 0 0 0 9.86 21a5.69 5.69 0 0 0 5.68-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.3 4.3 0 0 1-3.24-1.48z"/></svg></a><a href="https://www.instagram.com/andrear.estefania" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2A4.8 4.8 0 1 0 12 16.8 4.8 4.8 0 0 0 12 7.2zm0 7.9a3.1 3.1 0 1 1 0-6.2 3.1 3.1 0 0 1 0 6.2zM17 5.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2zM12 3.6c2.3 0 2.5 0 3.4.05 2.3.1 3.4 1.2 3.5 3.5.04.9.05 1.2.05 3.4s0 2.5-.05 3.4c-.1 2.3-1.2 3.4-3.5 3.5-.9.04-1.1.05-3.4.05s-2.5 0-3.4-.05c-2.3-.1-3.4-1.2-3.5-3.5C5.1 14.5 5.1 14.2 5.1 12s0-2.5.05-3.4c.1-2.3 1.2-3.4 3.5-3.5.9-.04 1.2-.05 3.4-.05zM12 2c-2.3 0-2.6 0-3.5.06C5.3 2.2 3.3 4.2 3.2 7.3 3.1 8.2 3.1 8.5 3.1 12s0 2.6.06 3.5c.15 3.1 2.1 5.1 5.3 5.3.9.04 1.2.05 3.5.05s2.6 0 3.5-.05c3.1-.15 5.1-2.1 5.3-5.3.04-.9.05-1.2.05-3.5s0-2.6-.05-3.5c-.15-3.1-2.1-5.1-5.3-5.3C14.6 2 14.3 2 12 2z"/></svg></a><a href="https://a.co/d/06Xqdcq7" target="_blank" rel="noopener" aria-label="Amazon storefront"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7V6a5 5 0 0 1 10 0v1h3l-1 14H5L4 7h3zm2 0h6V6a3 3 0 0 0-6 0v1zm-3 2 .8 10h10.4L18 9H6z"/></svg></a></div>
+    <div class="navsocial"><button type="button" class="themebtn" id="themebtn" aria-label="Switch to dark mode"><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><span class="navdiv" aria-hidden="true"></span><a href="https://www.tiktok.com/@itsdreaestefania" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5 2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 3.37-2.48V9.66a5.7 5.7 0 0 0-.77-.05A5.69 5.69 0 0 0 4.17 15.3 5.69 5.69 0 0 0 9.86 21a5.69 5.69 0 0 0 5.68-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.3 4.3 0 0 1-3.24-1.48z"/></svg></a><a href="https://www.instagram.com/andrear.estefania" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2A4.8 4.8 0 1 0 12 16.8 4.8 4.8 0 0 0 12 7.2zm0 7.9a3.1 3.1 0 1 1 0-6.2 3.1 3.1 0 0 1 0 6.2zM17 5.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2zM12 3.6c2.3 0 2.5 0 3.4.05 2.3.1 3.4 1.2 3.5 3.5.04.9.05 1.2.05 3.4s0 2.5-.05 3.4c-.1 2.3-1.2 3.4-3.5 3.5-.9.04-1.1.05-3.4.05s-2.5 0-3.4-.05c-2.3-.1-3.4-1.2-3.5-3.5C5.1 14.5 5.1 14.2 5.1 12s0-2.5.05-3.4c.1-2.3 1.2-3.4 3.5-3.5.9-.04 1.2-.05 3.4-.05zM12 2c-2.3 0-2.6 0-3.5.06C5.3 2.2 3.3 4.2 3.2 7.3 3.1 8.2 3.1 8.5 3.1 12s0 2.6.06 3.5c.15 3.1 2.1 5.1 5.3 5.3.9.04 1.2.05 3.5.05s2.6 0 3.5-.05c3.1-.15 5.1-2.1 5.3-5.3.04-.9.05-1.2.05-3.5s0-2.6-.05-3.5c-.15-3.1-2.1-5.1-5.3-5.3C14.6 2 14.3 2 12 2z"/></svg></a><a href="https://a.co/d/06Xqdcq7" target="_blank" rel="noopener" aria-label="Amazon storefront"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7V6a5 5 0 0 1 10 0v1h3l-1 14H5L4 7h3zm2 0h6V6a3 3 0 0 0-6 0v1zm-3 2 .8 10h10.4L18 9H6z"/></svg></a></div>
     <a class="pill" href="#contact">work with me</a>
   </nav>
 
@@ -578,6 +593,22 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
   setData(FALLBACK);
   fetch("https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?tqx=out:csv&sheet=Videos&headers=1")
     .then(r=>r.ok?r.text():Promise.reject()).then(t=>{const rows=parseCSV(t); if(rows.length>1 && rows[0].some(h=>/link/i.test(h))) setData(rows)}).catch(()=>{});
+})();
+</script>
+<script>
+(function(){
+  // Light/dark toggle. With no saved choice the site follows the visitor's system setting.
+  const root=document.documentElement, btn=document.getElementById("themebtn");
+  const isDark=()=>root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+  const label=()=>btn.setAttribute("aria-label",isDark()?"Switch to light mode":"Switch to dark mode");
+  try{const t=localStorage.getItem("drea-theme"); if(t==="light"||t==="dark") root.dataset.theme=t}catch(_){}
+  label();
+  btn.addEventListener("click",()=>{
+    const next=isDark()?"light":"dark"; root.dataset.theme=next;
+    try{localStorage.setItem("drea-theme",next)}catch(_){}
+    label();
+  });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",label);
 })();
 </script>
 <div class="cursor" id="cursor" aria-hidden="true"></div>
