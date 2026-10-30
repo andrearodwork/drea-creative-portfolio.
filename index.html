@@ -429,7 +429,7 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
       GROUPS.forEach(G=>{v.g[G.key]=[...new Set(G.cols.map(c=>get(r,c).toLowerCase()).filter(Boolean))]});
       return v}).filter(v=>v.link && v.show!=="no").sort((a,b)=>b.reach-a.reach)}
   function embed(link){let m;
-    if(m=link.match(/tiktok\.com\/.*\/(?:video|photo)\/(\d+)/)) return "https://www.tiktok.com/player/v1/"+m[1]+"?music_info=0&description=0&rel=0&loop=1&native_context_menu=0";
+    if(m=link.match(/tiktok\.com\/.*\/(?:video|photo)\/(\d+)/)) return "https://www.tiktok.com/embed/v2/"+m[1];
     if(m=link.match(/instagram\.com\/(reel|reels|p)\/([\w-]+)/)) return "https://www.instagram.com/"+(m[1]=="p"?"p":"reel")+"/"+m[2]+"/embed";
     if(m=link.match(/(?:youtu\.be\/|youtube\.com\/(?:shorts\/|watch\?v=|embed\/))([\w-]{6,})/)) return "https://www.youtube.com/embed/"+m[1]+"?autoplay=1&playsinline=1&loop=1&playlist="+m[1];
     if(m=link.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/)) return "https://drive.google.com/file/d/"+m[1]+"/preview";
